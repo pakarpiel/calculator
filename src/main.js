@@ -9,31 +9,32 @@ class Calculator{
         });
     }
 
-    // operationsMap = {
-    //     "1": Numeral,
-    //     "2": Numeral,
-    //     "3": Numeral,
-    //     "4": Numeral,
-    //     "5": Numeral,
-    //     "6": Numeral,
-    //     "7": Numeral,
-    //     "8": Numeral,
-    //     "9": Numeral,
-    //     "0": Numeral,
-    //     DIVIDE: DivideOperation,
-    //     MULTIPLY: MultiplyOperation,
-    //     SUBSTRACT: SubstractOperation,
-    //     ADD: AddOperation,
-    //     C: ClearOperations,
-    //     BRACKETS: BracketsOperation,
-    //     PERCENT: PercentOperation,
-    //     PLUSMINUS: PlusMinusOperation,
-    //     COMA: ComaOperation,
-    //     RESULT: ResultOperation
-    // }
+    operationsMap = {
+        "1": Numeral,
+        "2": Numeral,
+        "3": Numeral,
+        "4": Numeral,
+        "5": Numeral,
+        "6": Numeral,
+        "7": Numeral,
+        "8": Numeral,
+        "9": Numeral,
+        "0": Numeral,
+        DIVIDE: DivideOperation,
+        MULTIPLY: MultiplyOperation,
+        SUBSTRACT: SubstractOperation,
+        ADD: AddOperation,
+        C: ClearOperations,
+        BRACKETS: BracketsOperation,
+        PERCENT: PercentOperation,
+        PLUSMINUS: PlusMinusOperation,
+        COMA: ComaOperation,
+        RESULT: ResultOperation
+    }
 
     handleOperation(operationCode){
-        // const operationType = this.operationMap[operationCode];
+        const operationType = this.operationsMap[operationCode];
+        const operation = new operationType();
         this.displayResult(operationCode);
     }
 
