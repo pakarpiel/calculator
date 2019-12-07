@@ -34,25 +34,53 @@ class Calculator{
 
     handleOperation(operationCode){
         const operationType = this.operationsMap[operationCode];
-        const operation = new operationType();
-        this.displayResult(operationCode);
+        const currentOperation = new operationType(operationCode);
+        this.runOperations(currentOperation);
     }
 
-    displayResult(operation){
-        this.$display.val(operation);
+    context = new CalcContext();
+
+    runOperations(currentOperation){
+        this.context.interpret(currentOperation);
+        const operations = this.context.operationsArray;
+        this.$display.val(operations.join(""));
+        console.log(this.context.operationsArray);
     }
 }
 
-class Numeral{}
-class DivideOperation{}
-class MultiplyOperation{}
-class SubstractOperation{}
-class AddOperation{}
-class ClearOperations{}
-class BracketsOperation{}
-class PercentOperation{}
-class PlusMinusOperation{}
-class ComaOperation{}
-class ResultOperation{}
+class CalcContext{
+    constructor(){
+        this.operationsArray = [];
+    }
+
+    interpret(currentOperation){
+        this.operationsArray.push(currentOperation.operationCode);
+    }
+}
+
+class Operation {
+    constructor(operationCode){
+        this.operationCode = operationCode;
+    }
+}
+class Numeral extends Operation{}
+class DivideOperation extends Operation{
+    operationCode = "/";
+}
+class MultiplyOperation extends Operation{
+    operationCode = "*";
+}
+class SubstractOperation extends Operation{
+    operationCode = "-";
+}
+class AddOperation extends Operation{
+    operationCode = "+";
+}
+class ClearOperations extends Operation{}
+class BracketsOperation extends Operation{}
+class PercentOperation extends Operation{}
+class PlusMinusOperation extends Operation{}
+class ComaOperation extends Operation{}
+class ResultOperation extends Operation{}
 
 const calculator = new Calculator;
