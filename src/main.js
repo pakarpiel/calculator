@@ -51,36 +51,68 @@ class Calculator{
 class CalcContext{
     constructor(){
         this.operationsArray = [];
+        this.previousOperation = null;
     }
 
     interpret(currentOperation){
+        if (currentOperation instanceof MainAxctions){
+            this.operationsArray.push(currentOperation.operationCode);
+            this.previousOperation = null;
+            return;
+        }
+        if (currentOperation instanceof Numeral){
+            if (this.previousOperation) {
+                currentOperation = currentOperation.join(this.previousOperation, currentOperation.operationCode);
+                this.operationsArray.pop();
+            
+            };
+            this.previousOperation = currentOperation.operationCode;
+        }
         this.operationsArray.push(currentOperation.operationCode);
+        
+        
     }
 }
 
 class Operation {
     constructor(operationCode){
-        this.operationCode = operationCode;
+        this.operationCode = parseInt(operationCode);
     }
 }
-class Numeral extends Operation{}
-class DivideOperation extends Operation{
+class Numeral extends Operation{
+    join(previous, current){
+        this.operationCode = parseInt(`${previous}${current}`)
+        return this;
+    }
+}
+class MainAxctions extends Operation {}
+class DivideOperation extends MainAxctions{
     operationCode = "/";
 }
-class MultiplyOperation extends Operation{
+class MultiplyOperation extends MainAxctions{
     operationCode = "*";
 }
-class SubstractOperation extends Operation{
+class SubstractOperation extends MainAxctions{
     operationCode = "-";
 }
-class AddOperation extends Operation{
+class AddOperation extends MainAxctions{
     operationCode = "+";
 }
-class ClearOperations extends Operation{}
-class BracketsOperation extends Operation{}
-class PercentOperation extends Operation{}
-class PlusMinusOperation extends Operation{}
-class ComaOperation extends Operation{}
-class ResultOperation extends Operation{}
+class ClearOperations {}
+class BracketsOperation extends Operation{
+    operationCode = "()";
+}
+class PercentOperation extends Operation{
+    operationCode = "%";
+}
+class PlusMinusOperation extends Operation{
+    operationCode = "+/-";
+}
+class ComaOperation extends Operation{
+    operationCode = ".";
+}
+class ResultOperation extends Operation{
+    operationCode = "=";
+}
 
 const calculator = new Calculator;
