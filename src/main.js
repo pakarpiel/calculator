@@ -81,9 +81,30 @@ class Operation {
 }
 class Numeral extends Operation{
     join(previous, current){
-        this.operationCode = parseInt(`${previous}${current}`)
+        this.operationCode = parseFloat(`${previous}${current}`);
         return this;
     }
+}
+class PlusMinusOperation extends Numeral{
+    operationCode = "-";
+    
+    join(previous, current){
+        if(!previous){
+            this.operationCode = "-";
+        } else {
+            this.operationCode = parseFloat(previous)*(-1);
+        }
+        return this;
+    }
+
+}
+class ComaOperation extends Numeral{
+    operationCode = ".";
+    join(previous, current){
+        this.operationCode = `${previous}${current}`;
+        return this;
+    }
+
 }
 class MainAxctions extends Operation {}
 class DivideOperation extends MainAxctions{
@@ -104,12 +125,6 @@ class BracketsOperation extends Operation{
 }
 class PercentOperation extends Operation{
     operationCode = "%";
-}
-class PlusMinusOperation extends Operation{
-    operationCode = "+/-";
-}
-class ComaOperation extends Operation{
-    operationCode = ".";
 }
 class ResultOperation extends Operation{
     operationCode = "=";
