@@ -43,7 +43,7 @@ class Calculator{
     runOperations(currentOperation){
         this.context.interpret(currentOperation);
         const operations = this.context.operationsArray;
-        this.$display.val(operations.join(""));
+        this.$display.val((operations.map(operation => operation.operationCode)).join(""));
         console.log(this.context.operationsArray);
     }
 }
@@ -53,22 +53,28 @@ class CalcContext{
         this.operationsArray = [];
         this.previousOperation = null;
     }
+    result = new ResultOperation();
 
     interpret(currentOperation){
+        
+
         if (currentOperation instanceof MainAxctions){
-            this.operationsArray.push(currentOperation.operationCode);
             this.previousOperation = null;
+            this.operationsArray.push(currentOperation); 
+            if (this.operationsArray.length >= 3){
+                this.result.run(this);
+            }
             return;
         }
         if (currentOperation instanceof Numeral){
             if (this.previousOperation) {
                 currentOperation = currentOperation.join(this.previousOperation, currentOperation.operationCode);
                 this.operationsArray.pop();
-            
             };
             this.previousOperation = currentOperation.operationCode;
-        }
-        this.operationsArray.push(currentOperation.operationCode);
+            this.operationsArray.push(currentOperation);
+        } 
+        console.log(this.operationsArray[this.operationsArray.length-1].operationCode)  
         
         
     }
@@ -94,7 +100,7 @@ class PlusMinusOperation extends Numeral{
         } else {
             this.operationCode = parseFloat(previous)*(-1);
         }
-        return this;
+        return new Numeral(this.operationCode);
     }
 
 }
@@ -106,18 +112,33 @@ class ComaOperation extends Numeral{
     }
 
 }
-class MainAxctions extends Operation {}
+class MainAxctions extends Operation {
+    
+}
 class DivideOperation extends MainAxctions{
     operationCode = "/";
+    calculate(a, b){
+        return new Numeral(a/b);
+    }
 }
 class MultiplyOperation extends MainAxctions{
     operationCode = "*";
+    calculate(a, b){
+        return new Numeral(a*b);
+    }
+    
 }
 class SubstractOperation extends MainAxctions{
     operationCode = "-";
+    calculate(a, b){
+        return new Numeral(a-b);
+    }
 }
 class AddOperation extends MainAxctions{
     operationCode = "+";
+    calculate(a, b){
+        return new Numeral(a+b);
+    }
 }
 class ClearOperations {}
 class BracketsOperation extends Operation{
@@ -127,7 +148,18 @@ class PercentOperation extends Operation{
     operationCode = "%";
 }
 class ResultOperation extends Operation{
-    operationCode = "=";
+    operationCode = "";
+
+    run(context){
+        const numbersArray = context.operationsArray.filter(operation => operation instanceof Numeral);
+        const action = context.operationsArray.find(operation => operation instanceof MainAxctions);
+
+        const result = action.calculate(numbersArray[0].operationCode, numbersArray[1].operationCode);
+        context.operationsArray.splice(0, 3, result);
+
+    }
+    
+
 }
 
 const calculator = new Calculator;
