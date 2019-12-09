@@ -67,6 +67,9 @@ class CalcContext{
             return;
         }
         if (currentOperation instanceof Numeral){
+            // if(this.operationsArray[0] instanceof ResultOperation){
+            //     this.operationsArray = [];
+            // }
             if (this.previousOperation) {
                 currentOperation = currentOperation.join(this.previousOperation, currentOperation.operationCode);
                 this.operationsArray.pop();
@@ -74,15 +77,23 @@ class CalcContext{
             this.previousOperation = currentOperation.operationCode;
             this.operationsArray.push(currentOperation);
         } 
-        console.log(this.operationsArray[this.operationsArray.length-1].operationCode)  
-        
-        
+        if (currentOperation instanceof ResultOperation){
+            this.previousOperation = null;
+            if (this.operationsArray.length >= 3){
+                currentOperation.run(this);
+            }else{
+                alert("Nieprawidłowy format!")
+            }
+        }
+        if (currentOperation instanceof ClearOperations){
+            currentOperation.run(this);
+        }
     }
 }
 
 class Operation {
     constructor(operationCode){
-        this.operationCode = parseInt(operationCode);
+        this.operationCode = parseFloat(operationCode);
     }
 }
 class Numeral extends Operation{
@@ -140,7 +151,11 @@ class AddOperation extends MainAxctions{
         return new Numeral(a+b);
     }
 }
-class ClearOperations {}
+class ClearOperations {
+    run(context){
+        context.operationsArray = [];
+    }
+}
 class BracketsOperation extends Operation{
     operationCode = "()";
 }
