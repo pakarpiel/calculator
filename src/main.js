@@ -51,16 +51,26 @@ class Calculator{
 class CalcContext{
     constructor(){
         this.operationsArray = [];
-        this.previousOperation = null;
+        this.previousDigit = null;
     }
     result = new ResultOperation();
 
     interpret(currentOperation){
-        
 
         if (currentOperation instanceof MainAxctions){
-            this.previousOperation = null;
-            this.operationsArray.push(currentOperation); 
+            if (this.operationsArray.length === 0) return;
+            this.previousDigit = null;
+            if (this.operationsArray[this.operationsArray.length - 1] instanceof ComaOperation){
+                let codeOperation = this.operationsArray[this.operationsArray.length - 1].operationCode;
+                this.operationsArray.splice(-1,1, new Numeral(codeOperation));
+
+            if (this.operationsArray[this.operationsArray.length - 1] instanceof MainAxctions){
+                this.operationsArray.pop();
+            }
+            this.operationsArray.push(currentOperation);
+
+            
+            } 
             if (this.operationsArray.length >= 3){
                 this.result.run(this);
             }
@@ -70,15 +80,15 @@ class CalcContext{
             // if(this.operationsArray[0] instanceof ResultOperation){
             //     this.operationsArray = [];
             // }
-            if (this.previousOperation) {
-                currentOperation = currentOperation.join(this.previousOperation, currentOperation.operationCode);
+            if (this.previousDigit) {
+                currentOperation = currentOperation.join(this.previousDigit, currentOperation.operationCode);
                 this.operationsArray.pop();
             };
-            this.previousOperation = currentOperation.operationCode;
+            this.previousDigit = currentOperation.operationCode;
             this.operationsArray.push(currentOperation);
         } 
         if (currentOperation instanceof ResultOperation){
-            this.previousOperation = null;
+            this.previousDigit = null;
             if (this.operationsArray.length >= 3){
                 currentOperation.run(this);
             }else{
@@ -123,9 +133,19 @@ class ComaOperation extends Numeral{
     }
 
 }
+
+class PercentOperation extends Numeral{
+    operationCode = "%";
+    join(previous, current){
+        this.operationCode = `${previous}${current}`;
+        return this;
+    }
+}
+
 class MainAxctions extends Operation {
     
 }
+
 class DivideOperation extends MainAxctions{
     operationCode = "/";
     calculate(a, b){
@@ -154,14 +174,13 @@ class AddOperation extends MainAxctions{
 class ClearOperations {
     run(context){
         context.operationsArray = [];
+        context.previousDigit = null;
     }
 }
 class BracketsOperation extends Operation{
     operationCode = "()";
 }
-class PercentOperation extends Operation{
-    operationCode = "%";
-}
+
 class ResultOperation extends Operation{
     operationCode = "";
 
@@ -171,6 +190,8 @@ class ResultOperation extends Operation{
 
         const result = action.calculate(numbersArray[0].operationCode, numbersArray[1].operationCode);
         context.operationsArray.splice(0, 3, result);
+
+        
 
     }
     
