@@ -24,7 +24,7 @@ class Calculator{
         SUBSTRACT: SubstractOp,
         ADD: AddOp,
         C: ClearOp,
-        BRACKETS: BracketsOp,
+        SQRT: SqrtOp,
         PERCENT: PercentOp,
         PLUSMINUS: PlusMinusOp,
         COMA: ComaOp,
@@ -107,14 +107,14 @@ class CalcContext{
             currentOp.run(this);
             return;
         }
-
-        // if (currentOp instanceof BracketsOp){
-        //     this.bracketsCounter += 1;
-        //     if(this.opsArr[this.opsArr.length - 1] instanceof Numeral){
-        //         this.opsArr.push(new MultiplyOp());
-        //     }
-        //     this.opsArr.push(currentOp);
-        // }
+        if (currentOp instanceof SqrtOp){
+            if (this.opsArr[this.opsArr.length-1] instanceof Numeral){
+                currentOp.run(this)
+            } else {
+                alert("Nieprawidłowy format!")
+            }
+            context.previousDigit = null;
+        }
     }
 }
 
@@ -185,8 +185,13 @@ class ClearOp {
         context.previousDigit = null;
     }
 }
-class BracketsOp extends Operation{
-    opCode = "(";
+class SqrtOp extends Operation{
+    run(context){
+        const last = context.opsArr[context.opsArr.length -1];
+        const sqrt = Math.sqrt(last.opCode);
+        context.opsArr.splice(-1,1, new Numeral(sqrt));
+        
+    }
 }
 class ResultOp extends Operation{
     opCode = "";
@@ -211,10 +216,6 @@ class ResultOp extends Operation{
 
         const result = action.calculate(first.opCode, second.opCode);
         context.opsArr.splice(0, 3, result);
-        // if (context.opsArr.length === 7){
-        //     const result = action[1].calculate(numbersArray[context.bracketsCounter].opCode, numbersArray[context.bracketsCounter+1].opCode);
-        //     context.opsArr.splice(context.bracketsCounter+2, 3, result);
-        // }
     }
 }
 
