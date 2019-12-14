@@ -44,6 +44,7 @@ class Calculator{
         const ops = this.context.opsArr;
         this.$display.val((ops.map(op => op.opCode)).join(""));
         console.log(this.context.opsArr);
+        console.log(this.context.previousDigit);
     }
 }
 
@@ -57,9 +58,9 @@ class CalcContext{
 
     interpret(currentOp){
 
-        if (currentOp instanceof MainActions || currentOp instanceof MainActions){
-            if (this.opsArr.length === 0) return;
+        if (currentOp instanceof MainActions || currentOp instanceof ResultOp){
             this.previousDigit = null;
+            if (this.opsArr.length === 0) return;
             if (this.opsArr[this.opsArr.length - 1] instanceof ComaOp){
                 let codeOperation = this.opsArr[this.opsArr.length - 1].opCode;
                 this.opsArr.splice(-1,1, new Numeral(codeOperation));
@@ -78,12 +79,22 @@ class CalcContext{
         if (currentOp instanceof ResultOp){
             if (this.opsArr.length >= 3){
                 currentOp.run(this);
+                this.previousDigit = null;
             }else{
                 alert("Nieprawidłowy format!")
             }
             return;
         }
         if (currentOp instanceof Numeral){
+            if (this.opsArr[this.opsArr.length - 1] instanceof Numeral){
+                this.opsArr.pop();
+            }
+            if (currentOp instanceof PercentOp){
+                if(!this.previousDigit){
+                    alert("Nieprawidłowy format!")
+                    return;
+                }
+            }
             if (this.previousDigit) {
                 currentOp = currentOp.join(this.previousDigit, currentOp.opCode);
                 this.opsArr.pop();
@@ -96,12 +107,7 @@ class CalcContext{
             currentOp.run(this);
             return;
         }
-        if (currentOp instanceof PercentOp){
-            if(this.previousDigit = null){
-                alert("Nieprawidłowy format!")
-                return;
-            }
-        }
+
         // if (currentOp instanceof BracketsOp){
         //     this.bracketsCounter += 1;
         //     if(this.opsArr[this.opsArr.length - 1] instanceof Numeral){
@@ -185,10 +191,25 @@ class BracketsOp extends Operation{
 class ResultOp extends Operation{
     opCode = "";
     run(context){
-        const numbersArray = context.opsArr.filter(op => op instanceof Numeral);
+        const numbersArray = context.opsArr.filter(op => op instanceof Numeral || op instanceof PercentOp);
         const action = context.opsArr.find(op => op instanceof MainActions);
-        
-        const result = action.calculate(numbersArray[0].opCode, numbersArray[1].opCode);
+        const first = numbersArray[0];
+        const second = numbersArray[1];
+
+        // Operations for percents
+        if (first instanceof PercentOp){
+            first.opCode = parseFloat(first.opCode)/100;
+        }
+        if (second instanceof PercentOp){
+            if (action instanceof SubstractOp || action instanceof SubstractOp){
+                second.opCode = first.opCode*parseFloat(second.opCode)/100;
+            }else{
+                second.opCode = parseFloat(second.opCode)/100;
+            }  
+        }
+        // ----------
+
+        const result = action.calculate(first.opCode, second.opCode);
         context.opsArr.splice(0, 3, result);
         // if (context.opsArr.length === 7){
         //     const result = action[1].calculate(numbersArray[context.bracketsCounter].opCode, numbersArray[context.bracketsCounter+1].opCode);
