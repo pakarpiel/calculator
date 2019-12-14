@@ -2,14 +2,13 @@ class Calculator{
     constructor(){
         this.$display = $("#display");
         this.$buttons = $(".btn");
-
         this.$buttons.on("click", e => {
-            const operation = e.target.dataset.code;
-            this.handleOperation(operation);
+            const op = e.target.dataset.code;
+            this.handleOperation(op);
         });
     }
 
-    operationsMap = {
+    opsMap = {
         "1": Numeral,
         "2": Numeral,
         "3": Numeral,
@@ -20,182 +19,182 @@ class Calculator{
         "8": Numeral,
         "9": Numeral,
         "0": Numeral,
-        DIVIDE: DivideOperation,
-        MULTIPLY: MultiplyOperation,
-        SUBSTRACT: SubstractOperation,
-        ADD: AddOperation,
-        C: ClearOperations,
-        BRACKETS: BracketsOperation,
-        PERCENT: PercentOperation,
-        PLUSMINUS: PlusMinusOperation,
-        COMA: ComaOperation,
-        RESULT: ResultOperation
+        DIVIDE: DivideOp,
+        MULTIPLY: MultiplyOp,
+        SUBSTRACT: SubstractOp,
+        ADD: AddOp,
+        C: ClearOp,
+        BRACKETS: BracketsOp,
+        PERCENT: PercentOp,
+        PLUSMINUS: PlusMinusOp,
+        COMA: ComaOp,
+        RESULT: ResultOp
     }
 
-    handleOperation(operationCode){
-        const operationType = this.operationsMap[operationCode];
-        const currentOperation = new operationType(operationCode);
-        this.runOperations(currentOperation);
+    handleOperation(opCode){
+        const opType = this.opsMap[opCode];
+        const currentOp = new opType(opCode);
+        this.runOperations(currentOp);
     }
 
     context = new CalcContext();
 
-    runOperations(currentOperation){
-        this.context.interpret(currentOperation);
-        const operations = this.context.operationsArray;
-        this.$display.val((operations.map(operation => operation.operationCode)).join(""));
-        console.log(this.context.operationsArray);
+    runOperations(currentOp){
+        this.context.interpret(currentOp);
+        const ops = this.context.opsArr;
+        this.$display.val((ops.map(op => op.opCode)).join(""));
+        console.log(this.context.opsArr);
     }
 }
 
 class CalcContext{
     constructor(){
-        this.operationsArray = [];
+        this.opsArr = [];
         this.previousDigit = null;
+        // this.bracketsCounter = 0;
     }
-    result = new ResultOperation();
+    result = new ResultOp();
 
-    interpret(currentOperation){
+    interpret(currentOp){
 
-        if (currentOperation instanceof MainAxctions){
-            if (this.operationsArray.length === 0) return;
+        if (currentOp instanceof MainActions || currentOp instanceof MainActions){
+            if (this.opsArr.length === 0) return;
             this.previousDigit = null;
-            if (this.operationsArray[this.operationsArray.length - 1] instanceof ComaOperation){
-                let codeOperation = this.operationsArray[this.operationsArray.length - 1].operationCode;
-                this.operationsArray.splice(-1,1, new Numeral(codeOperation));
-
-            if (this.operationsArray[this.operationsArray.length - 1] instanceof MainAxctions){
-                this.operationsArray.pop();
+            if (this.opsArr[this.opsArr.length - 1] instanceof ComaOp){
+                let codeOperation = this.opsArr[this.opsArr.length - 1].opCode;
+                this.opsArr.splice(-1,1, new Numeral(codeOperation));
             }
-            this.operationsArray.push(currentOperation);
-
-            
-            } 
-            if (this.operationsArray.length >= 3){
+        }
+        if (currentOp instanceof MainActions){
+            if (this.opsArr[this.opsArr.length - 1] instanceof MainActions){
+                this.opsArr.pop();
+            }
+            this.opsArr.push(currentOp);
+            if (this.opsArr.length >= 3){
                 this.result.run(this);
             }
             return;
         }
-        if (currentOperation instanceof Numeral){
-            // if(this.operationsArray[0] instanceof ResultOperation){
-            //     this.operationsArray = [];
-            // }
-            if (this.previousDigit) {
-                currentOperation = currentOperation.join(this.previousDigit, currentOperation.operationCode);
-                this.operationsArray.pop();
-            };
-            this.previousDigit = currentOperation.operationCode;
-            this.operationsArray.push(currentOperation);
-        } 
-        if (currentOperation instanceof ResultOperation){
-            this.previousDigit = null;
-            if (this.operationsArray.length >= 3){
-                currentOperation.run(this);
+        if (currentOp instanceof ResultOp){
+            if (this.opsArr.length >= 3){
+                currentOp.run(this);
             }else{
                 alert("Nieprawidłowy format!")
             }
+            return;
         }
-        if (currentOperation instanceof ClearOperations){
-            currentOperation.run(this);
+        if (currentOp instanceof Numeral){
+            if (this.previousDigit) {
+                currentOp = currentOp.join(this.previousDigit, currentOp.opCode);
+                this.opsArr.pop();
+            };
+            this.previousDigit = currentOp.opCode;
+            this.opsArr.push(currentOp);
+            return;
+        } 
+        if (currentOp instanceof ClearOp){
+            currentOp.run(this);
+            return;
         }
+        if (currentOp instanceof PercentOp){
+            if(this.previousDigit = null){
+                alert("Nieprawidłowy format!")
+                return;
+            }
+        }
+        // if (currentOp instanceof BracketsOp){
+        //     this.bracketsCounter += 1;
+        //     if(this.opsArr[this.opsArr.length - 1] instanceof Numeral){
+        //         this.opsArr.push(new MultiplyOp());
+        //     }
+        //     this.opsArr.push(currentOp);
+        // }
     }
 }
 
 class Operation {
-    constructor(operationCode){
-        this.operationCode = parseFloat(operationCode);
+    constructor(opCode){
+        this.opCode = parseFloat(opCode);
     }
 }
 class Numeral extends Operation{
     join(previous, current){
-        this.operationCode = parseFloat(`${previous}${current}`);
+        this.opCode = parseFloat(`${previous}${current}`);
         return this;
     }
 }
-class PlusMinusOperation extends Numeral{
-    operationCode = "-";
-    
+class PlusMinusOp extends Numeral{
+    opCode = "-";   
     join(previous, current){
         if(!previous){
-            this.operationCode = "-";
+            this.opCode = "-";
         } else {
-            this.operationCode = parseFloat(previous)*(-1);
+            this.opCode = parseFloat(previous)*(-1);
         }
-        return new Numeral(this.operationCode);
+        return new Numeral(this.opCode);
     }
-
 }
-class ComaOperation extends Numeral{
-    operationCode = ".";
+class ComaOp extends Numeral{
+    opCode = ".";
     join(previous, current){
-        this.operationCode = `${previous}${current}`;
-        return this;
-    }
-
-}
-
-class PercentOperation extends Numeral{
-    operationCode = "%";
-    join(previous, current){
-        this.operationCode = `${previous}${current}`;
+        this.opCode = `${previous}${current}`;
         return this;
     }
 }
-
-class MainAxctions extends Operation {
-    
+class PercentOp extends Numeral{
+    opCode = "%";
+    join(previous, current){
+        this.opCode = `${previous}${current}`;
+        return this;
+    }
 }
-
-class DivideOperation extends MainAxctions{
-    operationCode = "/";
+class MainActions extends Operation {}
+class DivideOp extends MainActions{
+    opCode = "/";
     calculate(a, b){
         return new Numeral(a/b);
     }
 }
-class MultiplyOperation extends MainAxctions{
-    operationCode = "*";
+class MultiplyOp extends MainActions{
+    opCode = "*";
     calculate(a, b){
         return new Numeral(a*b);
-    }
-    
+    }  
 }
-class SubstractOperation extends MainAxctions{
-    operationCode = "-";
+class SubstractOp extends MainActions{
+    opCode = "-";
     calculate(a, b){
         return new Numeral(a-b);
     }
 }
-class AddOperation extends MainAxctions{
-    operationCode = "+";
+class AddOp extends MainActions{
+    opCode = "+";
     calculate(a, b){
         return new Numeral(a+b);
     }
 }
-class ClearOperations {
+class ClearOp {
     run(context){
-        context.operationsArray = [];
+        context.opsArr = [];
         context.previousDigit = null;
     }
 }
-class BracketsOperation extends Operation{
-    operationCode = "()";
+class BracketsOp extends Operation{
+    opCode = "(";
 }
-
-class ResultOperation extends Operation{
-    operationCode = "";
-
+class ResultOp extends Operation{
+    opCode = "";
     run(context){
-        const numbersArray = context.operationsArray.filter(operation => operation instanceof Numeral);
-        const action = context.operationsArray.find(operation => operation instanceof MainAxctions);
-
-        const result = action.calculate(numbersArray[0].operationCode, numbersArray[1].operationCode);
-        context.operationsArray.splice(0, 3, result);
-
+        const numbersArray = context.opsArr.filter(op => op instanceof Numeral);
+        const action = context.opsArr.find(op => op instanceof MainActions);
         
-
+        const result = action.calculate(numbersArray[0].opCode, numbersArray[1].opCode);
+        context.opsArr.splice(0, 3, result);
+        // if (context.opsArr.length === 7){
+        //     const result = action[1].calculate(numbersArray[context.bracketsCounter].opCode, numbersArray[context.bracketsCounter+1].opCode);
+        //     context.opsArr.splice(context.bracketsCounter+2, 3, result);
+        // }
     }
-    
-
 }
 
 const calculator = new Calculator;
