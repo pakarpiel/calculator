@@ -42,24 +42,22 @@ class Calculator{
     runOperations(currentOp){
         this.context.interpret(currentOp);
         const ops = this.context.opsArr;
-        this.$display.val((ops.map(op => op.opCode)).join(""));
+        const text = ops.length != 0 ? (ops.map(op => op.opCode)).join("") : 0;
+        this.$display.text(text);
         console.log(this.context.opsArr);
-        console.log(this.context.previousDigit);
     }
 }
 
 class CalcContext{
     constructor(){
         this.opsArr = [];
-        this.previousDigit = null;
-        // this.bracketsCounter = 0;
+        this.previousDigits = null;
     }
     result = new ResultOp();
 
     interpret(currentOp){
-
         if (currentOp instanceof MainActions || currentOp instanceof ResultOp){
-            this.previousDigit = null;
+            this.previousDigits = null;
             if (this.opsArr.length === 0) return;
             if (this.opsArr[this.opsArr.length - 1] instanceof ComaOp){
                 let codeOperation = this.opsArr[this.opsArr.length - 1].opCode;
@@ -79,27 +77,28 @@ class CalcContext{
         if (currentOp instanceof ResultOp){
             if (this.opsArr.length >= 3){
                 currentOp.run(this);
-                this.previousDigit = null;
+                const res = this.opsArr[this.opsArr.length-1].opCode;
+                this.opsArr.splice(-1, 1, new ResultNumeral(res));
             }else{
                 alert("Nieprawidłowy format!")
             }
             return;
         }
         if (currentOp instanceof Numeral){
-            if (this.opsArr[this.opsArr.length - 1] instanceof Numeral){
+            if (this.opsArr[this.opsArr.length - 1] instanceof ResultNumeral) {
                 this.opsArr.pop();
             }
             if (currentOp instanceof PercentOp){
-                if(!this.previousDigit){
+                if(!this.previousDigits){
                     alert("Nieprawidłowy format!")
                     return;
                 }
             }
-            if (this.previousDigit) {
-                currentOp = currentOp.join(this.previousDigit, currentOp.opCode);
+            if (this.previousDigits != null) {
+                currentOp = currentOp.join(this.previousDigits, currentOp.opCode);
                 this.opsArr.pop();
             };
-            this.previousDigit = currentOp.opCode;
+            this.previousDigits = currentOp.opCode;
             this.opsArr.push(currentOp);
             return;
         } 
@@ -113,7 +112,7 @@ class CalcContext{
             } else {
                 alert("Nieprawidłowy format!")
             }
-            context.previousDigit = null;
+            this.previousDigits = null;
         }
     }
 }
@@ -125,10 +124,15 @@ class Operation {
 }
 class Numeral extends Operation{
     join(previous, current){
+        if(typeof(previous) === "string" && current === 0){
+            this.opCode = `${previous}${current}`;
+            return this;
+        }
         this.opCode = parseFloat(`${previous}${current}`);
-        return this;
+        return this;   
     }
 }
+class ResultNumeral extends Numeral {}
 class PlusMinusOp extends Numeral{
     opCode = "-";   
     join(previous, current){
@@ -158,7 +162,7 @@ class MainActions extends Operation {}
 class DivideOp extends MainActions{
     opCode = "/";
     calculate(a, b){
-        return new Numeral(a/b);
+        return new Numeral((a/b).toFixed(6));
     }
 }
 class MultiplyOp extends MainActions{
@@ -182,15 +186,14 @@ class AddOp extends MainActions{
 class ClearOp {
     run(context){
         context.opsArr = [];
-        context.previousDigit = null;
+        context.previousDigits = null;
     }
 }
 class SqrtOp extends Operation{
     run(context){
         const last = context.opsArr[context.opsArr.length -1];
         const sqrt = Math.sqrt(last.opCode);
-        context.opsArr.splice(-1,1, new Numeral(sqrt));
-        
+        context.opsArr.splice(-1,1, new Numeral((sqrt).toFixed(6)));
     }
 }
 class ResultOp extends Operation{
@@ -206,7 +209,7 @@ class ResultOp extends Operation{
             first.opCode = parseFloat(first.opCode)/100;
         }
         if (second instanceof PercentOp){
-            if (action instanceof SubstractOp || action instanceof SubstractOp){
+            if (action instanceof SubstractOp || action instanceof AddOp){
                 second.opCode = first.opCode*parseFloat(second.opCode)/100;
             }else{
                 second.opCode = parseFloat(second.opCode)/100;
@@ -214,8 +217,8 @@ class ResultOp extends Operation{
         }
         // ----------
 
-        const result = action.calculate(first.opCode, second.opCode);
-        context.opsArr.splice(0, 3, result);
+        const res = action.calculate(first.opCode, second.opCode);
+        context.opsArr.splice(0, 3, res);
     }
 }
 
