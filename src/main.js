@@ -94,6 +94,9 @@ class CalcContext{
                     return;
                 }
             }
+            if (currentOp instanceof ComaOp){
+                currentOp.run(this);
+            }
             if (this.previousDigits != null) {
                 currentOp = currentOp.join(this.previousDigits, currentOp.opCode);
                 this.opsArr.pop();
@@ -146,7 +149,16 @@ class PlusMinusOp extends Numeral{
 }
 class ComaOp extends Numeral{
     opCode = ".";
+    run(context){
+        if(context.previousDigits === null){
+            this.opCode = "0."
+        }
+    }
     join(previous, current){
+        if(!Number.isInteger(previous) || typeof(previous) === "string"){
+            this.opCode = previous;
+            return this;
+        };
         this.opCode = `${previous}${current}`;
         return this;
     }
