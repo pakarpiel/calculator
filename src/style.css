@@ -47,6 +47,10 @@ html {
     cursor: pointer;
 }
 
+.btn:active {
+    background-color: #5D7182;
+}
+
 .dark{
     background-color: #DBDAD9;
 }
